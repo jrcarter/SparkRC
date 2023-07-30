@@ -12,6 +12,7 @@ with Ada.Containers;
 
 package SRC with SPARK_Mode
 is
-   subtype Positive_Count is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
-   use type Positive_Count;
+   subtype Count_Type is Ada.Containers.Count_Type;
+   use type Count_Type;
+   subtype Positive_Count is Count_Type range 1 .. Count_Type'Last;
 end SRC;

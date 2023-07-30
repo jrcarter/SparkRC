@@ -32,7 +32,7 @@ is
       Post => Length (From) = Length (From)'Old - 1;
    -- Removes the Element at the head of From and assigns it to Item
 
-   function Length (Queue : in Handle) return Ada.Containers.Count_Type;
+   function Length (Queue : in Handle) return Count_Type;
    -- Returns the number of Elements in Queue
 
    function Is_Empty (Queue : in Handle) return Boolean;
@@ -53,7 +53,7 @@ private -- SRC.Bounded_Queues
       List : Lists.List (Capacity => Max_Length);
    end record;
 
-   function Length (Queue : in Handle) return Ada.Containers.Count_Type is (Lists.Length (Queue.List) );
+   function Length (Queue : in Handle) return Count_Type is (Lists.Length (Queue.List) );
 
    function Is_Empty (Queue : in Handle) return Boolean is (Lists.Is_Empty (Queue.List) );
 

@@ -32,7 +32,7 @@ is
       Post => Length (From) = Length (From)'Old - 1;
    -- Removes the Element at the top of From and assigns it to Item
 
-   function Length (Stack : in Handle) return Ada.Containers.Count_Type;
+   function Length (Stack : in Handle) return Count_Type;
    -- Returns the number of Elements in Stack
 
    function Is_Empty (Stack : in Handle) return Boolean;
@@ -53,7 +53,7 @@ private -- SRC.Bounded_Stacks
       List : Lists.List (Capacity => Max_Length);
    end record;
 
-   function Length (Stack : in Handle) return Ada.Containers.Count_Type is (Lists.Length (Stack.List) );
+   function Length (Stack : in Handle) return Count_Type is (Lists.Length (Stack.List) );
 
    function Is_Empty (Stack : in Handle) return Boolean is (Lists.Is_Empty (Stack.List) );
 

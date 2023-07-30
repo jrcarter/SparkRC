@@ -2,5 +2,7 @@ project SRC is
    for Source_Files use ("prove.ads",
                          "src.ads",
                          "src-bounded_queues.ads", "src-bounded_queues.adb",
-                         "src-bounded_stacks.ads", "src-bounded_stacks.adb");
+                         "src-bounded_stacks.ads", "src-bounded_stacks.adb",
+                         "src-indefinite_unbounded_queues.ads", "src-indefinite_unbounded_queues.adb",
+                         "src-indefinite_unbounded_stacks.ads", "src-indefinite_unbounded_stacks.adb");
 end SRC;
