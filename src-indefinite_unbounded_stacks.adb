@@ -34,6 +34,7 @@ package body SRC.Indefinite_Unbounded_Stacks is
    end Remove_Top;
 
    procedure Iterate (Over : in out Handle) is
+      -- Empty
    begin -- Iterate
       All_Elements : for I in reverse 1 .. Lists.Last_Index (Over.List) loop
          Action (Item => Lists.Element (Container => Over.List, Index => I) );

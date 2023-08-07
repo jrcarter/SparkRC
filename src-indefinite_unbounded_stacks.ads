@@ -28,6 +28,7 @@ is
    procedure Clear (Stack : in out Handle) with
       Post => Is_Empty (Stack);
    -- Makes Stack empty
+   -- Clear must be called before a Handle goes out of scope in order to avoid storage leaks
 
    procedure Push (Onto : in out Handle; Item : in Element) with
       Pre  => Count_Type'Pos (Length (Onto) ) < Integer'Pos (Integer'Last),

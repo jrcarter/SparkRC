@@ -4,5 +4,7 @@ project SRC is
                          "src-bounded_queues.ads", "src-bounded_queues.adb",
                          "src-bounded_stacks.ads", "src-bounded_stacks.adb",
                          "src-indefinite_unbounded_queues.ads", "src-indefinite_unbounded_queues.adb",
-                         "src-indefinite_unbounded_stacks.ads", "src-indefinite_unbounded_stacks.adb");
+                         "src-indefinite_unbounded_stacks.ads", "src-indefinite_unbounded_stacks.adb",
+                         "src-indefinite_ordered_searchable.ads", "src-indefinite_ordered_searchable.adb",
+                         "src-unbounded_ordered_maps.ads", "src-unbounded_ordered_maps.adb");
 end SRC;
