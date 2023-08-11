@@ -6,6 +6,7 @@
 -- Indefinite unbounded queues
 --
 -- History:
+-- 2023 Aug 15     J. Carter          V1.1--Improved contracts
 -- 2023 Aug 01     J. Carter          V1.0--Initial version
 --
 private with Ada.Containers.Formal_Indefinite_Vectors;
@@ -32,7 +33,7 @@ is
 
    procedure Put (Onto : in out Handle; Item : in Element) with
       Pre  => Count_Type'Pos (Length (Onto) ) < Integer'Pos (Integer'Last),
-      Post => not Is_Empty (Onto);
+      Post => Length (Onto) = Length (Onto)'Old + 1;
    -- Adds Item to the tail of Onto
 
    -- For a Get operation, one needs to call Peek followed by Remove_Head
@@ -51,11 +52,11 @@ is
       Post => Length (From) = Length (From)'Old - 1;
    -- Removes the Element at the head of From
 
-   function Length (Queue : in Handle) return Count_Type with
-      Post => Count_Type'Pos (Length'Result) <= Integer'Pos (Integer'Last);
+   function Length (Queue : in Handle) return Count_Type;
    -- Returns the number of Elements in Queue
 
-   function Is_Empty (Queue : in Handle) return Boolean;
+   function Is_Empty (Queue : in Handle) return Boolean with
+      Post => Is_Empty'Result = (Length (Queue) = 0);
    -- Returns True if Queue is empty; False otherwise
 
    function Peek (Queue : in Handle) return Element with
@@ -74,7 +75,8 @@ private -- SRC.Indefinite_Unbounded_Queues
 
    type Handle is record
       List : Lists.Vector (Capacity => 1);
-   end record;
+   end record with
+      Dynamic_Predicate => Count_Type'Pos (Lists.Length (Handle.List) ) = Integer'Pos (Lists.Last_Index (Handle.List) );
 
    function Length (Queue : in Handle) return Count_Type is (Lists.Length (Queue.List) );
 

@@ -6,6 +6,7 @@
 -- Bounded stacks
 --
 -- History:
+-- 2023 Aug 15     J. Carter          V1.1--Improved contracts
 -- 2023 Aug 01     J. Carter          V1.0--Initial version
 --
 private with Ada.Containers.Formal_Doubly_Linked_Lists;
@@ -24,7 +25,7 @@ is
 
    procedure Push (Onto : in out Handle; Item : in Element) with
       Pre  => Length (Onto) < Onto.Max_Length,
-      Post => not Is_Empty (Onto);
+      Post => Length (Onto) = Length (Onto)'Old + 1;
    -- Adds Item to the top of Onto
 
    procedure Pop (From : in out Handle; Item : out Element) with
@@ -35,7 +36,8 @@ is
    function Length (Stack : in Handle) return Count_Type;
    -- Returns the number of Elements in Stack
 
-   function Is_Empty (Stack : in Handle) return Boolean;
+   function Is_Empty (Stack : in Handle) return Boolean with
+      Post => Is_Empty'Result = (Length (Stack) = 0);
    -- Returns True if Stack is empty; False otherwise
 
    function Peek (Stack : in Handle) return Element with

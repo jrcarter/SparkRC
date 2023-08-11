@@ -32,28 +32,31 @@ is
    -- Clear must be called before a Handle goes out of scope in order to avoid storage leaks
 
    procedure Insert (Into : in out Handle; Item : in Element) with
-      Pre  => Count_Type'Pos (Length (Into) ) < Integer'Pos (Integer'Last),
-      Post => not Is_Empty (Into);
-   -- If not Contains (Into, Item), inserts Item into Into, in order;
-   -- Otherwise, replaces the Element in Into that is = Item with Item
+      Pre  => Count_Type'Pos (Length (Into) ) < Integer'Pos (Integer'Last) and then not Contains (Into, Item),
+      Post => Length (Into) = Length (Into)'Old + 1;
+   -- Inserts Item into Into, in order;
 
-   function Contains (Set : in Handle; Item : in Element) return Boolean with
-      Pre => Count_Type'Pos (Length (Set) ) < Integer'Pos (Integer'Last);
+   procedure Update (Into : in out Handle; Item : in Element) with
+      Pre => Contains (Into, Item);
+   -- Replaces the Element in Into that is = Item with Item
+
+   function Contains (Set : in Handle; Item : in Element) return Boolean;
    -- Returns True if Set has an Element = Item; False otherwise
 
    function Value (Set : in Handle; Item : in Element) return Element with
-      Pre => Count_Type'Pos (Length (Set) ) < Integer'Pos (Integer'Last) and then Contains (Set, Item);
+      Pre => Contains (Set, Item);
    -- Returns the Element in Into that is = Item
 
    procedure Delete (From : in out Handle; Item : in Element) with
-      Pre => Count_Type'Pos (Length (From) ) < Integer'Pos (Integer'Last);
-   -- If Contains (From, Item), deletes the Element in Into that is = Item; otherwise, has no effect
+      Pre => Contains (From, Item);
+   -- Deletes the Element in Into that is = Item
 
    function Length (Set : in Handle) return Count_Type;
    -- Returns the number of Elements in Set
 
-   function Is_Empty (Set : in Handle) return Boolean;
-   -- Returns Length (Set) = 0
+   function Is_Empty (Set : in Handle) return Boolean with
+      Post => Is_Empty'Result = (Length (Set) = 0);
+   -- Returns True if Set is empty; False otherwise
 
    generic -- Iterate
       with procedure Action (Item : in Element);
@@ -67,7 +70,8 @@ private -- Indefinite_Ordered_Searchable
 
    type Handle is record
       List : Lists.Vector (Capacity => 1);
-   end record;
+   end record with
+      Dynamic_Predicate => Count_Type'Pos (Lists.Length (Handle.List) ) = Integer'Pos (Lists.Last_Index (Handle.List) );
 
    function Length (Set : in Handle) return Count_Type is (Lists.Length (Set.List) );
 

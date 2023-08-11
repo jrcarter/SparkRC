@@ -12,27 +12,43 @@ package body SRC.Indefinite_Ordered_Searchable is
    -- A Handle's list is maintained in ascending "<" order (sorted)
    -- An empty list is sorted
    -- A list of length 1 is sorted
-   -- For an Element not in a list, Find returns an index such that inserting that Element before that index keeps the list sorted
+   -- For an Element not in a list, Find returns
+   --    Unfound.At_End if Item should be appended to the list to keep the list sorted, or
+   --    Unfound.Before if Item should be inserted into the list before Before to keep the list sorted
    -- Deleting an Element from a sorted list keeps the list sorted
-   -- So proof that a lList is always sorted becomes proof that Find is correct
+   -- So proof that a list is always sorted becomes proof that Find is correct
    -- Assertions and comments in Find provide such a (manual) proof
 
-   type Find_Result is record
-      Found : Boolean;
-      Index : Positive;
+   type Unfound_Location (At_End : Boolean := False) is record
+      case At_End is
+      when False =>
+         Before : Positive;
+      when True =>
+         null;
+      end case;
+   end record;
+
+   type Find_Result (Found : Boolean := False) is record
+      case Found is
+      when False =>
+         Unfound : Unfound_Location;
+      when True =>
+         Index : Positive;
+      end case;
    end record;
 
    function Find (List : in Lists.Vector; Item : in Element) return Find_Result with
-      Pre  => Lists.Last_Index (List) < Integer'Last,
       Post => (if Find'Result.Found then
                   Find'Result.Index in 1 .. Lists.Last_Index (List)
+               elsif not Find'Result.Unfound.At_End then
+                  Find'Result.Unfound.Before in 1 .. Lists.Last_Index (List)
                else
-                  Find'Result.Index in 1 .. Lists.Last_Index (List) + 1);
+                  True);
    -- Binary search in List for Item
    -- If List contains Item, returns Found => True and Index is the index in List that is = Item
-   -- Otherwise, returns Found => False and Index is the Index in List of the smalled Element > Item,
-   -- or Last_Index + 1 if there is no Element > Item in List (that is, the Index before which to insert Item into List to keep
-   -- List sorted)
+   -- Otherwise, returns Found => False and
+   --    If Unfound.At_End, Item should be appended to List to keep it sorted;
+   --    Otherwise, item should be inserted in List before Unfound.Before to keep it sorted
 
    procedure Assign (To : in out Handle; From : in Handle) is
       -- Empty
@@ -50,16 +66,22 @@ package body SRC.Indefinite_Ordered_Searchable is
       Found : constant Find_Result := Find (Into.List, Item);
    begin -- Insert
       -- Into.List is sorted
-      if Found.Found then
-         Lists.Replace_Element (Container => Into.List, Index => Found.Index, New_Item => Item);
-         -- Into.List is sorted
+      if Found.Unfound.At_End then
+         Lists.Append (Container => Into.List, New_Item => Item);
+          -- Into.List is sorted
 
          return;
       end if;
 
-      Lists.Insert (Container => Into.List, Before => Found.Index, New_Item => Item);
+      Lists.Insert (Container => Into.List, Before => Found.Unfound.Before, New_Item => Item);
       -- Into.List is sorted
    end Insert;
+
+   procedure Update (Into : in out Handle; Item : in Element) is
+      Found : constant Find_Result := Find (Into.List, Item);
+   begin -- Update
+      Lists.Replace_Element (Container => Into.List, Index => Found.Index, New_Item => Item);
+   end Update;
 
    function Contains (Set : in Handle; Item : in Element) return Boolean is (Find (Set.List, Item).Found);
 
@@ -69,9 +91,7 @@ package body SRC.Indefinite_Ordered_Searchable is
       Found : constant Find_Result := Find (From.List, Item);
    begin -- Delete
       -- From.List is sorted
-      if Found.Found then
-         Lists.Delete (Container => From.List, Index => Found.Index);
-      end if;
+      Lists.Delete (Container => From.List, Index => Found.Index);
       -- From.List is sorted
    end Delete;
 
@@ -88,14 +108,20 @@ package body SRC.Indefinite_Ordered_Searchable is
       High : Natural  := Lists.Last_Index (List);
       Mid  : Positive;
    begin -- Find
-      if High = 0 or else Item < Lists.Element (List, 1) then
-         return (Found => False, Index => 1);
+      if High = 0 then
+         return (Found => False, Unfound => (At_End => True) );
       end if;
 
-      pragma Assert (High in 1 .. Integer'Last - 1);
+      pragma Assert (High in Positive);
+
+      if Item < Lists.Element (List, 1) then
+         return (Found => False, Unfound => (At_End => False, Before => 1) );
+      end if;
+
+      pragma Assert (High = Lists.Last_Index (List) );
 
       if Lists.Element (List, High) < Item then
-         return (Found => False, Index => High + 1);
+         return (Found => False, Unfound => (At_End => True) );
       end if;
 
       pragma Assert (Low <= High);
@@ -133,6 +159,6 @@ package body SRC.Indefinite_Ordered_Searchable is
       end if;
       -- Low = High - 1 and List (Low) < Item < List (High)
 
-      return (Found => False, Index => High);
+      return (Found => False, Unfound => (At_End => False, Before => High) );
    end Find;
 end SRC.Indefinite_Ordered_Searchable;

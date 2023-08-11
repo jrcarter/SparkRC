@@ -11,7 +11,7 @@ with SRC.Unbounded_Ordered_Maps;
 
 package Prove with SPARK_Mode
 is
-   --  -- Prove instances with an Elementary subtype
+   -- Prove instances with an Elementary subtype
    package E_B_Queues is new SRC.Bounded_Queues (Element => Integer);
    package E_B_Stacks is new SRC.Bounded_Stacks (Element => Integer);
    package E_U_Queues is new SRC.Indefinite_Unbounded_Queues (Element => Integer, Max_Size_In_Storage_Elements => 4);

@@ -6,6 +6,7 @@
 -- Indefinite unbounded stacks
 --
 -- History:
+-- 2023 Aug 15     J. Carter          V1.1--Improved contracts
 -- 2023 Aug 01     J. Carter          V1.0--Initial version
 --
 private with Ada.Containers.Formal_Indefinite_Vectors;
@@ -32,7 +33,7 @@ is
 
    procedure Push (Onto : in out Handle; Item : in Element) with
       Pre  => Count_Type'Pos (Length (Onto) ) < Integer'Pos (Integer'Last),
-      Post => not Is_Empty (Onto);
+      Post => Length (Onto) = Length (Onto)'Old + 1;
    -- Adds Item to the top of Onto
 
    -- For a Pop operation, one needs to call Peek followed by Remove_Top
@@ -51,11 +52,11 @@ is
       Post => Length (From) = Length (From)'Old - 1;
    -- Removes the Element at the top of From
 
-   function Length (Stack : in Handle) return Count_Type with
-      Post => Count_Type'Pos (Length'Result) <= Integer'Pos (Integer'Last);
+   function Length (Stack : in Handle) return Count_Type;
    -- Returns the number of Elements in Stack
 
-   function Is_Empty (Stack : in Handle) return Boolean;
+   function Is_Empty (Stack : in Handle) return Boolean with
+      Post => Is_Empty'Result = (Length (Stack) = 0);
    -- Returns True if Stack is empty; False otherwise
 
    function Peek (Stack : in Handle) return Element with
@@ -74,7 +75,8 @@ private -- SRC.Indefinite_Unbounded_Stacks
 
    type Handle is record
       List : Lists.Vector (Capacity => 1);
-   end record;
+   end record with
+      Dynamic_Predicate => Count_Type'Pos (Lists.Length (Handle.List) ) = Integer'Pos (Lists.Last_Index (Handle.List) );
 
    function Length (Stack : in Handle) return Count_Type is (Lists.Length (Stack.List) );
 

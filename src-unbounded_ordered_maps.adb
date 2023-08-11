@@ -27,6 +27,12 @@ package body SRC.Unbounded_Ordered_Maps is
       Lists.Insert (Into => Into.List, Item => (Key => Key, Value => Value) );
    end Insert;
 
+   procedure Update (Into : in out Handle; Key : in Key_Info; Value : in Value_Info) is
+      -- Empty
+   begin -- Update
+      Lists.Update (Into => Into.List, Item => (Key => Key, Value => Value) );
+   end Update;
+
    procedure Delete (From : in out Handle; Key : in Key_Info) is
       -- Empty
    begin -- Delete

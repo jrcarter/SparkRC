@@ -22,8 +22,8 @@ generic -- SRC.Unbounded_Ordered_Maps
    Max_Size_In_Storage_Elements : Natural;
    -- Key_Info and Value_Info will be grouped into a record:
    --    type R is record
-   --       Key   : Key_Info;
-   --       Value : Value_Info;
+   --       K : Key_Info;
+   --       V : Value_Info;
    --    end record;
    -- This is the size of that record
    -- Sometimes padding is added for alignment, so it's not just the sum of the sizes of Key_Info and Value_Info
@@ -41,28 +41,32 @@ is
    -- Clear must be called before a Handle goes out of scope in order to avoid storage leaks
 
    procedure Insert (Into : in out Handle; Key : in Key_Info; Value : in Value_Info) with
-      Pre  => Count_Type'Pos (Length (Into) ) < Integer'Pos (Integer'Last),
-      Post => not Is_Empty (Into);
-   -- if not Contains (Into, Key), adds a mapping from Key to Value to Into
-   -- Otherwise, makes Key map to Value
+      Pre  => Count_Type'Pos (Length (Into) ) < Integer'Pos (Integer'Last) and then not Contains (Into, Key, Value),
+      Post => Length (Into) = Length (Into)'Old + 1;
+   -- If not Contains (Into, Key), adds a mapping from Key to Value to Into; otherwise, has no effect
 
-   function Contains (Map : in Handle; Key : in Key_Info) return Boolean with
-      Pre => Count_Type'Pos (Length (Map) ) < Integer'Pos (Integer'Last);
+   procedure Update (Into : in out Handle; Key : in Key_Info; Value : in Value_Info) with
+      Pre => Contains (Into, Key, Value);
+   -- If Contains (Into, Key), makes Key map to Value in Into; otherwise
+
+   function Contains (Map : in Handle; Key : in Key_Info; Value : in Value_Info) return Boolean;
    -- Returns True if Key is associated with a value in Map; False otherwise
+   -- Value does not affect the result, but does affect proofs
 
    function Value (Map : in Handle; Key : in Key_Info) return Value_Info with
-      Pre => Count_Type'Pos (Length (Map) ) < Integer'Pos (Integer'Last) and then Contains (Map, Key);
+      Pre => Contains (Map, Key, Dummy_Value);
    -- Returns the value mapped to by Key
 
    procedure Delete (From : in out Handle; Key : in Key_Info) with
-      Pre => Count_Type'Pos (Length (From) ) < Integer'Pos (Integer'Last);
-   -- if Contains (From, Key), deletes the mapping for Key from From; otherwise, has no effect
+      Pre => Contains (From, Key, Dummy_Value);
+   -- Deletes the mapping for Key from From
 
    function Length (Map : in Handle) return Count_Type;
    -- Returns the number of mappings in Map
 
-   function Is_Empty (Map : in Handle) return Boolean;
-   -- Returns Length (Map) = 0
+   function Is_Empty (Map : in Handle) return Boolean with
+      Post => Is_Empty'Result = (Length (Map) = 0);
+   -- Returns True if Map is empty; False otherwise
 
    generic -- Iterate
       with procedure Action (Key : in Key_Info; Value : in Value_Info);
@@ -84,8 +88,8 @@ private -- SRC.Unbounded_Ordered_Maps
       List : Lists.Handle;
    end record;
 
-   function Contains (Map : in Handle; Key : in Key_Info) return Boolean is
-      (Lists.Contains (Map.List, (Key => Key, Value => Dummy_Value) ) );
+   function Contains (Map : in Handle; Key : in Key_Info; Value : in Value_Info) return Boolean is
+      (Lists.Contains (Map.List, (Key => Key, Value => Value) ) );
 
    function Value (Map : in Handle; Key : in Key_Info) return Value_Info is
       (Lists.Value (Map.List, (Key => Key, Value => Dummy_Value) ).Value);
