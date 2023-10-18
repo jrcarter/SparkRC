@@ -6,6 +6,7 @@
 -- Indefinite, unbounded, ordered, O(logN)-searchable structure
 --
 -- History:
+-- 2023 Nov 01     J. Carter          V1.1--Functional correctness proofs
 -- 2023 Aug 15     J. Carter          V1.0--Initial version
 --
 private with Ada.Containers.Formal_Indefinite_Vectors;
@@ -33,22 +34,25 @@ is
 
    procedure Insert (Into : in out Handle; Item : in Element) with
       Pre  => Count_Type'Pos (Length (Into) ) < Integer'Pos (Integer'Last) and then not Contains (Into, Item),
-      Post => Length (Into) = Length (Into)'Old + 1;
+      Post => Length (Into) = Length (Into)'Old + 1 and Contains (Into, Item);
    -- Inserts Item into Into, in order;
 
    procedure Update (Into : in out Handle; Item : in Element) with
-      Pre => Contains (Into, Item);
+      Pre  => Contains (Into, Item),
+      Post => Contains (Into, Item);
    -- Replaces the Element in Into that is = Item with Item
 
    function Contains (Set : in Handle; Item : in Element) return Boolean;
    -- Returns True if Set has an Element = Item; False otherwise
 
    function Value (Set : in Handle; Item : in Element) return Element with
-      Pre => Contains (Set, Item);
+      Pre  => Contains (Set, Item),
+      Post => Value'Result = Item;
    -- Returns the Element in Into that is = Item
 
    procedure Delete (From : in out Handle; Item : in Element) with
-      Pre => Contains (From, Item);
+      Pre  => Contains (From, Item),
+      Post => Length (From) = Length (From)'Old - 1 and not Contains (From, Item);
    -- Deletes the Element in Into that is = Item
 
    function Length (Set : in Handle) return Count_Type;
