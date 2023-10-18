@@ -6,6 +6,7 @@
 -- Unbounded, ordered maps
 --
 -- History:
+-- 2023 Nov 01     J. Carter          V1.1--Functional correctness proofs
 -- 2023 Aug 15     J. Carter          V1.0--Initial version
 --
 private with SRC.Indefinite_Ordered_Searchable;
@@ -42,11 +43,12 @@ is
 
    procedure Insert (Into : in out Handle; Key : in Key_Info; Value : in Value_Info) with
       Pre  => Count_Type'Pos (Length (Into) ) < Integer'Pos (Integer'Last) and then not Contains (Into, Key, Value),
-      Post => Length (Into) = Length (Into)'Old + 1;
+      Post => Length (Into) = Length (Into)'Old + 1 and Contains (Into, Key, Value);
    -- If not Contains (Into, Key), adds a mapping from Key to Value to Into; otherwise, has no effect
 
    procedure Update (Into : in out Handle; Key : in Key_Info; Value : in Value_Info) with
-      Pre => Contains (Into, Key, Value);
+      Pre  => Contains (Into, Key, Value),
+      Post => Contains (Into, Key, Value);
    -- If Contains (Into, Key), makes Key map to Value in Into; otherwise
 
    function Contains (Map : in Handle; Key : in Key_Info; Value : in Value_Info) return Boolean;
@@ -58,7 +60,8 @@ is
    -- Returns the value mapped to by Key
 
    procedure Delete (From : in out Handle; Key : in Key_Info) with
-      Pre => Contains (From, Key, Dummy_Value);
+      Pre  => Contains (From, Key, Dummy_Value),
+      Post => not Contains (From, Key, Dummy_Value);
    -- Deletes the mapping for Key from From
 
    function Length (Map : in Handle) return Count_Type;

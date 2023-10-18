@@ -6,6 +6,7 @@
 -- Bounded queues
 --
 -- History:
+-- 2023 Nov 01     J. Carter          V1.2--Functional correctness proofs
 -- 2023 Aug 15     J. Carter          V1.1--Improved contracts
 -- 2023 Aug 01     J. Carter          V1.0--Initial version
 --
@@ -30,7 +31,7 @@ is
 
    procedure Get (From : in out Handle; Item : out Element) with
       Pre  => not Is_Empty (From),
-      Post => Length (From) = Length (From)'Old - 1;
+      Post => Length (From) = Length (From)'Old - 1 and Item = Peek (From)'Old;
    -- Removes the Element at the head of From and assigns it to Item
 
    function Length (Queue : in Handle) return Count_Type;
