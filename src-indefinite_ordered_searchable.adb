@@ -18,7 +18,7 @@ package body SRC.Indefinite_Ordered_Searchable is
    --    Unfound.Before if Item should be inserted into the list before Before to keep the list sorted
    -- Deleting an Element from a sorted list keeps the list sorted
    -- So proof that a list is always sorted becomes proof that Find is correct
-   -- Assertions and assumptions in Find provide such a (mostly automatic) proof
+   -- Assertions and assumptions in Find provide such a proof
 
    type Unfound_Location (At_End : Boolean := False) is record
       case At_End is
@@ -39,11 +39,13 @@ package body SRC.Indefinite_Ordered_Searchable is
    end record;
 
    function Find (List : in Lists.Vector; Item : in Element) return Find_Result with
+      Pre  => Sorted (List),
       Post => (if Find'Result.Found then
                   Find'Result.Index in 1 .. Lists.Last_Index (List) and Lists.Element (List, Find'Result.Index) = Item
                elsif not Find'Result.Unfound.At_End then
                   Find'Result.Unfound.Before in 1 .. Lists.Last_Index (List) and
-                  Item < Lists.Element (List, Find'Result.Unfound.Before)
+                  Item < Lists.Element (List, Find'Result.Unfound.Before)    and
+                  (if Find'Result.Unfound.Before > 1 then Lists.Element (List, Find'Result.Unfound.Before - 1) < Item else True)
                else
                   Lists.Length (List) = 0 or else Lists.Element (List, Lists.Last_Index (List) ) < Item);
    -- Binary search in List for Item
@@ -67,25 +69,22 @@ package body SRC.Indefinite_Ordered_Searchable is
    procedure Insert (Into : in out Handle; Item : in Element) is
       Found : constant Find_Result := Find (Into.List, Item);
    begin -- Insert
-      -- Into.List is sorted
       if Found.Unfound.At_End then
          Lists.Append (Container => Into.List, New_Item => Item);
-          -- Into.List is sorted
-          pragma Assume (Contains (Into, Item) );
+         pragma Assume (Sorted (Into.List) and then Contains (Into, Item) );
 
          return;
       end if;
 
       Lists.Insert (Container => Into.List, Before => Found.Unfound.Before, New_Item => Item);
-      -- Into.List is sorted
-      pragma Assume (Contains (Into, Item) );
+      pragma Assume (Sorted (Into.List) and then Contains (Into, Item) );
    end Insert;
 
    procedure Update (Into : in out Handle; Item : in Element) is
       Found : constant Find_Result := Find (Into.List, Item);
    begin -- Update
       Lists.Replace_Element (Container => Into.List, Index => Found.Index, New_Item => Item);
-      pragma Assume (Contains (Into, Item) );
+      pragma Assume (Sorted (Into.List) and then Contains (Into, Item) );
    end Update;
 
    function Contains (Set : in Handle; Item : in Element) return Boolean is (Find (Set.List, Item).Found);
@@ -95,10 +94,8 @@ package body SRC.Indefinite_Ordered_Searchable is
    procedure Delete (From : in out Handle; Item : in Element) is
       Found : constant Find_Result := Find (From.List, Item);
    begin -- Delete
-      -- From.List is sorted
       Lists.Delete (Container => From.List, Index => Found.Index);
-      -- From.List is sorted
-      pragma Assume (not Contains (From, Item) );
+      pragma Assume (Sorted (From.List) and then not Contains (From, Item) );
    end Delete;
 
    procedure Iterate (Over : in out Handle) is
@@ -110,12 +107,14 @@ package body SRC.Indefinite_Ordered_Searchable is
    end Iterate;
 
    function Find (List : in Lists.Vector; Item : in Element) return Find_Result is
-      function "<=" (Left : in Element; Right : in Element) return Boolean is
-         (not (Right < Left) );
+      function "<=" (Left : in Element; Right : in Element) return Boolean with Ghost;
 
       function Between (Low : in Positive; High : in Positive) return Boolean with
-         Pre => High <= Lists.Last_Index (List) and Low <= High;
+         Ghost, Pre => High <= Lists.Last_Index (List) and Low <= High;
       -- Returns True if List (Low) <= Item and Item <= List (High); False otherwise
+
+      function "<=" (Left : in Element; Right : in Element) return Boolean is
+         (not (Right < Left) );
 
       function Between (Low : in Positive; High : in Positive) return Boolean is
          (Lists.Element (List, Low) <= Item and Item <= Lists.Element (List, High) );

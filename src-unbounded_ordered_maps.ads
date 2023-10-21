@@ -19,6 +19,7 @@ generic -- SRC.Unbounded_Ordered_Maps
 
    with function "=" (Left : in Key_Info; Right : in Key_Info) return Boolean is <>;
    with function "<" (Left : in Key_Info; Right : in Key_Info) return Boolean is <>;
+   -- For keys A, B, and C such that A < B and B = C, A < C must also be True
 
    Max_Size_In_Storage_Elements : Natural;
    -- Key_Info and Value_Info will be grouped into a record:
@@ -32,36 +33,40 @@ package SRC.Unbounded_Ordered_Maps with SPARK_Mode
 is
    type Handle is limited private with Default_Initial_Condition => Is_Empty (Handle);
 
+   function Ordered (Map : in Handle) return Boolean;
+
    procedure Assign (To : in out Handle; From : in Handle) with
       Post => Length (To) = Length (From);
    -- Makes the set of mappings in To the same as that in From
 
    procedure Clear (Map : in out Handle) with
-      Post => Is_Empty (Map);
+      Post => Is_Empty (Map) and Ordered (Map);
    -- Makes Map empty
    -- Clear must be called before a Handle goes out of scope in order to avoid storage leaks
 
    procedure Insert (Into : in out Handle; Key : in Key_Info; Value : in Value_Info) with
-      Pre  => Count_Type'Pos (Length (Into) ) < Integer'Pos (Integer'Last) and then not Contains (Into, Key, Value),
-      Post => Length (Into) = Length (Into)'Old + 1 and Contains (Into, Key, Value);
-   -- If not Contains (Into, Key), adds a mapping from Key to Value to Into; otherwise, has no effect
+      Pre  => Count_Type'Pos (Length (Into) ) < Integer'Pos (Integer'Last) and
+              (Ordered (Into) and then not Contains (Into, Key, Value) ),
+      Post => Length (Into) = Length (Into)'Old + 1 and (Ordered (Into) and then Contains (Into, Key, Value) );
+   -- Adds a mapping from Key to Value to Into
 
    procedure Update (Into : in out Handle; Key : in Key_Info; Value : in Value_Info) with
-      Pre  => Contains (Into, Key, Value),
-      Post => Contains (Into, Key, Value);
-   -- If Contains (Into, Key), makes Key map to Value in Into; otherwise
+      Pre  => Ordered (Into) and then Contains (Into, Key, Value),
+      Post => Ordered (Into) and then Contains (Into, Key, Value);
+   -- Makes Key map to Value in Into
 
-   function Contains (Map : in Handle; Key : in Key_Info; Value : in Value_Info) return Boolean;
+   function Contains (Map : in Handle; Key : in Key_Info; Value : in Value_Info) return Boolean with
+      Pre => Ordered (Map);
    -- Returns True if Key is associated with a value in Map; False otherwise
    -- Value does not affect the result, but does affect proofs
 
    function Value (Map : in Handle; Key : in Key_Info) return Value_Info with
-      Pre => Contains (Map, Key, Dummy_Value);
+      Pre => Ordered (Map) and then Contains (Map, Key, Dummy_Value);
    -- Returns the value mapped to by Key
 
    procedure Delete (From : in out Handle; Key : in Key_Info) with
-      Pre  => Contains (From, Key, Dummy_Value),
-      Post => not Contains (From, Key, Dummy_Value);
+      Pre  => Ordered (From) and then Contains (From, Key, Dummy_Value),
+      Post => Ordered (From) and then not Contains (From, Key, Dummy_Value);
    -- Deletes the mapping for Key from From
 
    function Length (Map : in Handle) return Count_Type;
@@ -90,6 +95,8 @@ private -- SRC.Unbounded_Ordered_Maps
    type Handle is record
       List : Lists.Handle;
    end record;
+
+   function Ordered (Map : in Handle) return Boolean is (Lists.Ordered (Map.List) );
 
    function Contains (Map : in Handle; Key : in Key_Info; Value : in Value_Info) return Boolean is
       (Lists.Contains (Map.List, (Key => Key, Value => Value) ) );
