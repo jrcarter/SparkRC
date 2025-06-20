@@ -1,11 +1,15 @@
 -- SPARK Reusable Components (SRC)
--- Copyright (C) by PragmAda Software Engineering.  All rights reserved.
--- Released under the terms of the BSD 3-Clause license; see https://opensource.org/licenses
+-- Copyright (C) by PragmAda Software Engineering
+-- SPDX-License-Identifier: BSD-3-Clause
+-- See https://spdx.org/licenses/
+-- If you find this software useful, please let me know, either through
+-- github.com/jrcarter or directly to pragmada@pragmada.x10hosting.com
 -- **************************************************************************
 --
 -- Unbounded stacks
 --
 -- History:
+-- 2025 Jul 01     J. Carter          V1.2--Use SPDX license format
 -- 2023 Nov 01     J. Carter          V1.1--Functional correctness proofs
 -- 2023 Sep 01     J. Carter          V1.0--Initial version
 --
@@ -65,7 +69,7 @@ private -- SRC.Unbounded_Stacks
    type Handle is record
       List : Lists.Vector (Capacity => 1);
    end record with
-      Dynamic_Predicate => Count_Type'Pos (Lists.Length (Handle.List) ) = Integer'Pos (Lists.Last_Index (Handle.List) );
+      Predicate => Count_Type'Pos (Lists.Length (Handle.List) ) = Integer'Pos (Lists.Last_Index (Handle.List) );
 
    function Length (Stack : in Handle) return Count_Type is (Lists.Length (Stack.List) );
 
